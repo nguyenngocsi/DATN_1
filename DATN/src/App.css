@@ -8,7 +8,7 @@
 }
 .tong_box_SP_XN{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: auto auto auto auto auto ;
     gap: 15px;
     padding: 15px;
     max-width: 1400px;

@@ -82,7 +82,7 @@ app.get("/spmoi/:sosp?", async (req, res) => {
 // Lấy sản phẩm hot
 app.get("/sphot", async (req, res) => {
   try {
-    const spxn = parseInt(req.query.spxn || 8); // Sửa: Lấy từ query thay vì params
+    const spxn = parseInt(req.query.spxn || 10); // Sửa: Lấy từ query thay vì params
     const limit = spxn <= 1 ? 9 : spxn;
 
     const [rows] = await pool.query(

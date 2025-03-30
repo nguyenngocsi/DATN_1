@@ -67,6 +67,7 @@ function App() {
           React.createElement(Menu, null)
         )
       )
+      
     ),
 
     // Box tìm kiếm

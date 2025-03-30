@@ -34,9 +34,10 @@ function Menu() {
     }
   };
 
-  return React.createElement(
+  return React.createElement(    
     'div',
     { className: 'menu' },
+    
     // Logo (giữ nguyên)
     React.createElement(
       'div',
