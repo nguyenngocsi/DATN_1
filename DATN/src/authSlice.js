@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Khai báo initialState để dễ bảo trì
 const initialState = {
   daDangNhap: false,
   user: null,
@@ -13,7 +12,13 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     thoat: (state) => {
-      Object.assign(state, initialState); // Reset toàn bộ state khi logout
+      const staySignedIn = localStorage.getItem("staySignedIn") === "true";
+      Object.assign(state, initialState);
+      localStorage.removeItem("userId");
+      if (!staySignedIn) {
+        localStorage.removeItem("token"); // Xóa token nếu không chọn "Duy trì đăng nhập"
+      }
+      localStorage.removeItem("staySignedIn");
       console.log("Người dùng đã đăng xuất.");
     },
     dalogin: (state, action) => {
@@ -25,7 +30,7 @@ export const authSlice = createSlice({
       }
 
       state.token = token;
-      state.expiresIn = expiresIn || 0; // Tránh undefined
+      state.expiresIn = expiresIn || 0;
       state.user = userInfo;
       state.daDangNhap = true;
 

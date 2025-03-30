@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux'; // Thêm import useSelector từ react-redux
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom'; // Thêm Link vào import
+import { useSelector } from 'react-redux';
 import './main.css';
 import Footer from './footer';
 import PageHome from './Page_Home';
@@ -18,8 +18,8 @@ import Admin from './admin_dashborad';
 import AdminProduct from './admin_product';
 import AdminUser from './admin_user';
 import AdminOrder from './admin_order';
-import Auth from './auth'; // Đã sửa tên file thành chữ thường để khớp với hệ thống
-import ForgotPassword from './ForgotPassword';  
+import Auth from './auth';
+import ForgotPassword from './ForgotPassword';
 import HienSPTrongMotTrang from './HienSPTrongMotTrang';
 import SoSanh from './SoSanh';
 import ProtectedRoute from './ProtectedRoute';
@@ -27,8 +27,9 @@ import UppdatePassWord from './doi_pass';
 import AdminCategory from './admin_category';
 import laptop from './laptop';
 import KhuyenMai from './KhuyenMai';
+
 function App() {
-  const daDangNhap = useSelector(state => state.auth.daDangNhap); // Dòng này giờ sẽ hoạt động
+  const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
   const location = useLocation();
 
@@ -156,7 +157,7 @@ function App() {
           Route,
           { element: React.createElement(ProtectedRoute, null) },
           React.createElement(Route, { path: '/showcart', element: React.createElement(ShowCart, null) }),
-          React.createElement(Route, { path: '/thanhtoan/', element: React.createElement(ThanhToan, null) }),
+          React.createElement(Route, { path: '/thanh-toan/', element: React.createElement(ThanhToan, null) }),
           React.createElement(Route, { path: '/thanks', element: React.createElement(CamOn, null) }),
           React.createElement(Route, { path: '/admin', element: React.createElement(Admin, null) }),
           React.createElement(Route, { path: '/admin/product', element: React.createElement(AdminProduct, null) }),

@@ -12,39 +12,37 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Đọc private key cho JWT
 const PRIVATE_KEY = fs.readFileSync("private-key.txt");
 
-// Kết nối MySQL với connection pool
 const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  port: 3306,
-  database: "laptop_react",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+    host: "localhost",
+    user: "root",
+    password: "",
+    port: 3306,
+    database: "laptop_react",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
 });
 console.log("Đã kết nối database");
 
-// Middleware kiểm tra JWT
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
-
-  if (!token) {
-    return res.status(401).json({ thongbao: "Token không tồn tại" });
-  }
-
-  jwt.verify(token, PRIVATE_KEY, { algorithms: ["RS256"] }, (err, user) => {
-    if (err) {
-      return res.status(403).json({ thongbao: "Token không hợp lệ hoặc đã hết hạn" });
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({ thongbao: "Token không tồn tại" });
     }
-    req.user = user;
-    next();
-  });
+    jwt.verify(token, PRIVATE_KEY, { algorithms: ["RS256"] }, (err, user) => {
+        if (err) {
+            return res.status(403).json({ thongbao: "Token không hợp lệ hoặc đã hết hạn" });
+        }
+        req.user = user;
+        next();
+    });
 };
+
+const commentsRouter = require('./routes/comments')(authenticateToken);
+app.use('/comments', commentsRouter);
 
 // Lấy danh sách sản phẩm mới
 app.get("/spmoi/:sosp?", async (req, res) => {
@@ -585,39 +583,39 @@ app.delete("/admin/users/:id", async (req, res) => {
 // Đăng nhập
 app.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+      const { email, password } = req.body;
 
-    const [users] = await pool.query(`SELECT * FROM users WHERE email = ?`, [email]);
-    if (users.length === 0) {
-      return res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
-    }
+      const [users] = await pool.query(`SELECT * FROM users WHERE email = ?`, [email]);
+      if (users.length === 0) {
+          return res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
+      }
 
-    const user = users[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
-    }
+      const user = users[0];
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(401).json({ thongbao: "Email hoặc mật khẩu không đúng" });
+      }
 
-    const jwtBearToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      PRIVATE_KEY,
-      { algorithm: "RS256", expiresIn: "120s", subject: user.id.toString() }
-    );
+      const jwtBearToken = jwt.sign(
+          { userId: user.id, email: user.email },
+          PRIVATE_KEY,
+          { algorithm: "RS256", expiresIn: "3600s", subject: user.id.toString() } // 1 giờ
+      );
 
-    res.status(200).json({
-      token: jwtBearToken,
-      expiresIn: 120,
-      userInfo: {
-        id: user.id,
-        name: user.name,
-        dia_chi: user.dia_chi,
-        dien_thoai: user.dien_thoai,
-        hinh: user.hinh,
-        role: user.role,
-      },
-    });
+      res.status(200).json({
+          token: jwtBearToken,
+          expiresIn: 3600, // 1 giờ
+          userInfo: {
+              id: user.id,
+              name: user.name,
+              dia_chi: user.dia_chi,
+              dien_thoai: user.dien_thoai,
+              hinh: user.hinh,
+              role: user.role,
+          },
+      });
   } catch (err) {
-    res.status(500).json({ thongbao: "Lỗi khi đăng nhập", error: err.message });
+      res.status(500).json({ thongbao: "Lỗi khi đăng nhập", error: err.message });
   }
 });
 
@@ -950,69 +948,69 @@ app.get("/thongke/sp", async (req, res) => {
 });
 
 // Lấy danh sách bình luận của một sản phẩm
-app.get("/comments/:product_id", async (req, res) => {
-  try {
-    const product_id = parseInt(req.params.product_id);
-    if (isNaN(product_id) || product_id <= 0) {
-      return res.status(400).json({ thongbao: "ID sản phẩm không hợp lệ" });
-    }
+// app.get("/comments/:product_id", async (req, res) => {
+//   try {
+//     const product_id = parseInt(req.params.product_id);
+//     if (isNaN(product_id) || product_id <= 0) {
+//       return res.status(400).json({ thongbao: "ID sản phẩm không hợp lệ" });
+//     }
 
-    const [rows] = await pool.query(
-      `SELECT id, user_id, user_name, Rating, Comment_Text, product_id, created_at 
-       FROM comment 
-       WHERE product_id = ? 
-       ORDER BY created_at DESC`,
-      [product_id]
-    );
+//     const [rows] = await pool.query(
+//       `SELECT id, user_id, user_name, Rating, Comment_Text, product_id, created_at 
+//        FROM comment 
+//        WHERE product_id = ? 
+//        ORDER BY created_at DESC`,
+//       [product_id]
+//     );
 
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ thongbao: "Lỗi lấy danh sách bình luận", error: err.message });
-  }
-});
+//     res.json(rows);
+//   } catch (err) {
+//     res.status(500).json({ thongbao: "Lỗi lấy danh sách bình luận", error: err.message });
+//   }
+// });
 
 // Thêm bình luận mới
-app.post("/comments", authenticateToken, async (req, res) => {
-  try {
-    const { user_id, user_name, rating, comment_text, product_id } = req.body;
+// app.post("/comments", authenticateToken, async (req, res) => {
+//   try {
+//     const { user_id, user_name, rating, comment_text, product_id } = req.body;
 
-    // Kiểm tra dữ liệu đầu vào
-    if (!user_id || !product_id || !comment_text) {
-      return res.status(400).json({ thongbao: "Thiếu thông tin bắt buộc (user_id, product_id, comment_text)" });
-    }
+//     // Kiểm tra dữ liệu đầu vào
+//     if (!user_id || !product_id || !comment_text) {
+//       return res.status(400).json({ thongbao: "Thiếu thông tin bắt buộc (user_id, product_id, comment_text)" });
+//     }
 
-    // Kiểm tra xem user_id từ token có khớp với user_id trong body không
-    if (req.user.userId !== user_id) {
-      return res.status(403).json({ thongbao: "Bạn không có quyền thêm bình luận cho user này" });
-    }
+//     // Kiểm tra xem user_id từ token có khớp với user_id trong body không
+//     if (req.user.userId !== user_id) {
+//       return res.status(403).json({ thongbao: "Bạn không có quyền thêm bình luận cho user này" });
+//     }
 
-    // Kiểm tra rating hợp lệ (0-5)
-    const ratingValue = parseInt(rating) || 0;
-    if (ratingValue < 0 || ratingValue > 5) {
-      return res.status(400).json({ thongbao: "Rating phải từ 0 đến 5" });
-    }
+//     // Kiểm tra rating hợp lệ (0-5)
+//     const ratingValue = parseInt(rating) || 0;
+//     if (ratingValue < 0 || ratingValue > 5) {
+//       return res.status(400).json({ thongbao: "Rating phải từ 0 đến 5" });
+//     }
 
-    // Kiểm tra sản phẩm có tồn tại không
-    const [product] = await pool.query(
-      `SELECT id FROM san_pham WHERE id = ?`,
-      [product_id]
-    );
-    if (product.length === 0) {
-      return res.status(404).json({ thongbao: "Sản phẩm không tồn tại" });
-    }
+//     // Kiểm tra sản phẩm có tồn tại không
+//     const [product] = await pool.query(
+//       `SELECT id FROM san_pham WHERE id = ?`,
+//       [product_id]
+//     );
+//     if (product.length === 0) {
+//       return res.status(404).json({ thongbao: "Sản phẩm không tồn tại" });
+//     }
 
-    // Thêm bình luận vào cơ sở dữ liệu
-    await pool.query(
-      `INSERT INTO comment (user_id, user_name, Rating, Comment_Text, product_id) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [user_id, user_name || "Khách", ratingValue, comment_text, product_id]
-    );
+//     // Thêm bình luận vào cơ sở dữ liệu
+//     await pool.query(
+//       `INSERT INTO comment (user_id, user_name, Rating, Comment_Text, product_id) 
+//        VALUES (?, ?, ?, ?, ?)`,
+//       [user_id, user_name || "Khách", ratingValue, comment_text, product_id]
+//     );
 
-    res.json({ thongbao: "Thêm bình luận thành công" });
-  } catch (err) {
-    res.status(500).json({ thongbao: "Thêm bình luận thất bại", error: err.message });
-  }
-});
+//     res.json({ thongbao: "Thêm bình luận thành công" });
+//   } catch (err) {
+//     res.status(500).json({ thongbao: "Thêm bình luận thất bại", error: err.message });
+//   }
+// });
 
 // Lấy danh sách khuyến mãi
 app.get("/khuyen-mai", async (req, res) => {
@@ -1044,4 +1042,116 @@ app.get("/khuyen-mai", async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Ứng dụng đang chạy với port 3000'));
+// API lấy giỏ hàng của user
+app.get('/gio-hang/:id_user', authenticateToken, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id_user);
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ message: "Bạn không có quyền xem giỏ hàng của user này" });
+    }
+
+    const [cartItems] = await pool.query(
+      `SELECT gh.*, sp.ten_sp, sp.hinh, sp.gia as gia_goc, sp.gia_km as gia_km_goc
+       FROM gio_hang gh 
+       JOIN san_pham sp ON gh.id_sp = sp.id 
+       WHERE gh.id_user = ?`,
+      [userId]
+    );
+    res.json(cartItems);
+  } catch (error) {
+    console.error('Lỗi khi lấy giỏ hàng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// API thêm sản phẩm vào giỏ hàng
+app.post('/gio-hang', authenticateToken, async (req, res) => {
+  try {
+    const { id_user, id_sp, so_luong, gia, gia_km } = req.body;
+
+    if (req.user.userId !== id_user) {
+      return res.status(403).json({ message: "Bạn không có quyền thêm sản phẩm vào giỏ hàng của user này" });
+    }
+
+    // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
+    const [existingItem] = await pool.query(
+      'SELECT * FROM gio_hang WHERE id_user = ? AND id_sp = ?',
+      [id_user, id_sp]
+    );
+
+    if (existingItem.length > 0) {
+      // Nếu đã tồn tại, cập nhật số lượng
+      await pool.query(
+        'UPDATE gio_hang SET so_luong = so_luong + ? WHERE id_user = ? AND id_sp = ?',
+        [so_luong, id_user, id_sp]
+      );
+    } else {
+      // Nếu chưa tồn tại, thêm mới
+      await pool.query(
+        'INSERT INTO gio_hang (id_user, id_sp, so_luong, gia, gia_km) VALUES (?, ?, ?, ?, ?)',
+        [id_user, id_sp, so_luong, gia, gia_km]
+      );
+    }
+
+    res.json({ message: 'Thêm vào giỏ hàng thành công' });
+  } catch (error) {
+    console.error('Lỗi khi thêm vào giỏ hàng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// API cập nhật số lượng sản phẩm trong giỏ hàng
+app.put('/gio-hang/:id_user/:id_sp', authenticateToken, async (req, res) => {
+  try {
+    const { id_user, id_sp } = req.params;
+    const { so_luong } = req.body;
+
+    await pool.query(
+      'UPDATE gio_hang SET so_luong = ? WHERE id_user = ? AND id_sp = ?',
+      [so_luong, id_user, id_sp]
+    );
+
+    res.json({ message: 'Cập nhật số lượng thành công' });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật số lượng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// API xóa sản phẩm khỏi giỏ hàng
+app.delete('/gio-hang/:id_user/:id_sp', authenticateToken, async (req, res) => {
+  try {
+    const { id_user, id_sp } = req.params;
+
+    await pool.query(
+      'DELETE FROM gio_hang WHERE id_user = ? AND id_sp = ?',
+      [id_user, id_sp]
+    );
+
+    res.json({ message: 'Xóa sản phẩm khỏi giỏ hàng thành công' });
+  } catch (error) {
+    console.error('Lỗi khi xóa sản phẩm:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+// API xóa toàn bộ giỏ hàng của user
+app.delete('/gio-hang/:id_user', authenticateToken, async (req, res) => {
+  try {
+    const { id_user } = req.params;
+
+    await pool.query(
+      'DELETE FROM gio_hang WHERE id_user = ?',
+      [id_user]
+    );
+
+    res.json({ message: 'Xóa giỏ hàng thành công' });
+  } catch (error) {
+    console.error('Lỗi khi xóa giỏ hàng:', error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+});
+
+
+  // app.use('/comments', commentsRouter);
+  app.listen(3000, () => console.log('Ứng dụng đang chạy với port 3000'));
