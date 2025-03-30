@@ -51,7 +51,7 @@ app.get("/spmoi/:sosp?", async (req, res) => {
   try {
     let sosp = parseInt(req.params.sosp) || 12;
     if (sosp <= 1) {
-      sosp = 16;
+      sosp = 15;
     }
 
     const [rows] = await pool.query(
