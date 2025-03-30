@@ -218,14 +218,14 @@ function ProductDetail() {
                                 <img src={sp.hinh} alt={sp.ten_sp} />
                             </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+                        {/* <div style={{ display: 'grid', gridTemplateColumns: 'auto auto', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
                             <div style={{ marginRight: '10px', fontWeight: '600' }}>Chia sẻ:</div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <i style={{ fontSize: '30px', color: '#fff', background: '#4267b2', borderRadius: '50%', padding: '5px' }} className="bi bi-facebook"></i>
                                 <i style={{ fontSize: '30px', color: '#fff', background: '#e60023', borderRadius: '50%', padding: '5px' }} className="bi bi-pinterest"></i>
                                 <i style={{ fontSize: '30px', color: '#fff', background: '#1da1f2', borderRadius: '50%', padding: '5px' }} className="bi bi-twitter"></i>
                             </div>
-                        </div>
+                        </div> */}
                         <div style={{ textAlign: 'center', marginTop: '30px' }}>
                             <h3 style={{ fontSize: '30px' }}>Mô tả chi tiết sản phẩm</h3>
                             <hr style={{ border: '1.5px solid #aeaeae', width: '40%', margin: '10px auto' }} />
@@ -300,16 +300,6 @@ function ProductDetail() {
                                 <img src={nganhang} alt="Phương thức thanh toán" style={{ marginTop: '10px', maxWidth: '100%' }} />
                             </div>
                         </div>
-                        <div className="content_img">
-                            <div>
-                                <div><img src={cart} alt="Giao hàng" /> Giao hàng toàn quốc</div>
-                                <div><img src={phieugiam} alt="Giảm giá" /> Giảm 5% khi thanh toán online</div>
-                            </div>
-                            <div>
-                                <div><img src={qua} alt="Tích điểm" /> Tích điểm tất cả sản phẩm</div>
-                                <div><img src={camket} alt="Chính hãng" /> Cam kết chính hãng</div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Khuyến mãi và cấu hình */}
@@ -351,7 +341,6 @@ function ProductDetail() {
                     </div>
                 </div>
             </div>
-
             {/* Phần bình luận */}
             <div style={{ margin: '0 20px 50px 20px' }}>
                 <h2 style={{ textAlign: 'center' }}>BÌNH LUẬN SẢN PHẨM</h2>
@@ -514,9 +503,10 @@ function ProductDetail() {
                     ))}
                 </div>
             </div>
-
+           
             {/* Nút trở về đầu trang */}
             <div className="troVe"><a href="#header"><i className="bi bi-arrow-up-short"></i></a></div>
+            
         </div>
     );
 }

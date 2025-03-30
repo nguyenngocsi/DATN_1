@@ -142,7 +142,7 @@ function SPXemNhieu() {
         }}>
           THU CŨ LÊN ĐỜI - TRỢ GIÁ ĐẾN 2 TRIỆU
         </div>
-        <div className="tong_box_SP">
+        <div className="tong_box_SP_XN">
                 {Array.isArray(listsp) && listsp.map((sp, i) => (
                     <div className="box_SP" key={i}>
                         {sp.phan_tram_gg && (

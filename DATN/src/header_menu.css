@@ -368,7 +368,7 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 100%;
-    max-width: 400px; /* Giới hạn chiều rộng tối đa */
+    max-width: 600px; /* Giới hạn chiều rộng tối đa */
     font-size: 14px;
     background: white;
     color: #333;
@@ -379,6 +379,7 @@
     border: none;
     cursor: pointer;
     margin-left: 5px;
+    margin-bottom: 6px;
 }
 
 .search-button i {
@@ -401,7 +402,7 @@
     border-radius: 5px;
     z-index: 1000;
     width: 100%;
-    max-width: 400px;
+    max-width: 480px;
     padding: 10px;
     display: flex;
     flex-direction: column;
