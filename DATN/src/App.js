@@ -26,6 +26,7 @@ import ProtectedRoute from './ProtectedRoute';
 import UppdatePassWord from './doi_pass';
 import AdminCategory from './admin_category';
 import laptop from './laptop';
+import KhuyenMai from './KhuyenMai';
 function App() {
   const daDangNhap = useSelector(state => state.auth.daDangNhap); // Dòng này giờ sẽ hoạt động
   const [showHeaderFooter, setShowHeaderFooter] = useState(true);
@@ -145,6 +146,7 @@ function App() {
         React.createElement(Route, { path: '/loai/:id', element: React.createElement(ShowProductOneKind, null) }),
         React.createElement(Route, { path: '/profile/:userId', element: React.createElement(Profile, null) }),
         React.createElement(Route, { path: '/', element: React.createElement(PageHome, null) }),
+        React.createElement(Route, { path: '/khuyen-mai', element: React.createElement(KhuyenMai, null) }),
         React.createElement(Route, { path: '*', element: React.createElement(NotFound, null) }),
         React.createElement(Route, { path: '/hien-thi-san-pham', element: React.createElement(HienSPTrongMotTrang, null) }),
         React.createElement(Route, { path: '/so-sanh', element: React.createElement(SoSanh, null) }),

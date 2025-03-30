@@ -1014,4 +1014,34 @@ app.post("/comments", authenticateToken, async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log(`Ứng dụng đang chạy với port 3000`));
+// Lấy danh sách khuyến mãi
+app.get("/khuyen-mai", async (req, res) => {
+  try {
+    // Lấy danh sách khuyến mãi đang active
+    const [promotions] = await pool.query(
+      `SELECT * FROM khuyen_mai 
+       WHERE trang_thai = 'active' 
+       AND ngay_bat_dau <= NOW() 
+       AND ngay_ket_thuc >= NOW()`
+    );
+
+    // Lấy chi tiết sản phẩm cho từng khuyến mãi
+    for (let promotion of promotions) {
+      const [products] = await pool.query(
+        `SELECT sp.*, ctk.gia_km
+         FROM chi_tiet_km ctk
+         JOIN san_pham sp ON ctk.id_sp = sp.id
+         WHERE ctk.id_km = ?`,
+        [promotion.id]
+      );
+      promotion.san_pham = products;
+    }
+
+    res.json(promotions);
+  } catch (err) {
+    console.error('Error fetching promotions:', err);
+    res.status(500).json({ thongbao: "Lỗi lấy danh sách khuyến mãi", error: err.message });
+  }
+});
+
+app.listen(3000, () => console.log('Ứng dụng đang chạy với port 3000'));

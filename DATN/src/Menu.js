@@ -72,7 +72,7 @@ function Menu() {
             React.createElement('li', null, React.createElement(NavLink, { to: '/san-pham/phu-kien' }, 'Phụ kiện'))
           )
         ),
-        React.createElement('li', null, React.createElement(NavLink, { to: '/ khuyen-mai', activeClassName: 'active' }, 'Khuyến mãi')),
+        React.createElement('li', null, React.createElement(NavLink, { to: '/khuyen-mai', activeClassName: 'active' }, 'Khuyến mãi')),
         React.createElement('li', null, React.createElement(NavLink, { to: '/tin-tuc', activeClassName: 'active' }, 'Tin tức')),
         React.createElement('li', null, React.createElement(NavLink, { to: '/lien-he', activeClassName: 'active' }, 'Liên hệ'))
       )
