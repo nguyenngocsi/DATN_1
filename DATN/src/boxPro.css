@@ -212,7 +212,7 @@ html {
 }
 
 .so_sanh_btn {
-    background: #2f80ed; /* Màu xanh cho nút so sánh */
+    background: #2f80ed;
     color: white;
     border: none;
     padding: 4px 8px;
@@ -222,9 +222,9 @@ html {
     transition: background 0.2s ease;
 }
 
-.so_sanh_btn:hover {
+/* .so_sanh_btn:hover {
     background: #1a73e8;
-}
+} */
 
 /* Responsive */
 @media (max-width: 768px) {
