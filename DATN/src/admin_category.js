@@ -15,7 +15,6 @@ function AdminCategory() {
     const [category, setCategory] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [refresh, setRefresh] = useState(false);
-    const [thongBao, setThongBao] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

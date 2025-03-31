@@ -1,18 +1,26 @@
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { thoat } from './authSlice';
 import { FiBox, FiUsers, FiList, FiShoppingCart } from 'react-icons/fi';
 import './admin.css';
+import { showNotification } from './components/NotificationContainer';
 
 function AdminDashboard() {
   document.title = "Quản lý Dashboard";
   const user = useSelector(state => state.auth.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const Logout = () => {
     if(window.confirm('Bạn muốn đăng xuất?')) {
       dispatch(thoat());
+      showNotification({
+        type: 'info',
+        title: 'Đăng xuất',
+        message: 'Bạn đã đăng xuất thành công'
+      });
+      navigate('/');
     }
   };
 
@@ -35,8 +43,30 @@ function AdminDashboard() {
             </ul>
           </div>
           <div className="admin_product_aside_header_logout">
-            <p>Đăng xuất</p>
-            <Link to="/#" onClick={Logout}><i className="fa-solid fa-right-from-bracket"></i></Link>
+            <button 
+              onClick={Logout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                background: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                width: '100%',
+                transition: 'background-color 0.3s ease',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d32f2f'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
+            >
+              <span>Đăng xuất</span>
+              <i className="fa-solid fa-right-from-bracket"></i>
+            </button>
           </div>
         </div>
       </aside>

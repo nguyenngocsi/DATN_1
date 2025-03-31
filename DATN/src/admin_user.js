@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import AdminUsersThem from "./admin_users_Them ";
+import AdminUsersThem from "./admin_users_Them";
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { thoat } from './authSlice';
@@ -20,7 +20,12 @@ function AdminUser() {
     const xoaUS = (id) => {
         if (window.confirm('Bạn muốn xóa tài khoản này?') === false) return false;
         
-        fetch(`http://localhost:3000/admin/users/${id}`, {method:'delete'})
+        fetch(`http://localhost:3000/admin/users/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
             .then(res => res.json())
             .then(data => {
                 showNotification({

@@ -28,34 +28,74 @@ function AdminProductSua({ setRefresh, selectedProduct }) {
 
     const submitDuLieu = async () => {
         try {
-            const url = `http://localhost:3000/admin/sp/${sp.id}`;
-            const duLieuGui = {
-                ...sp,
-                ngay: sp.ngay ? moment(sp.ngay).format('YYYY-MM-DD') : null
-            };
-            
-            const response = await fetch(url, {
-                method: "PUT",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(duLieuGui)
-            });
-            
-            const data = await response.json();
-            
-            if (data.error) {
+            if (!sp.id) {
                 showNotification({
                     type: 'error',
                     title: 'Lỗi',
-                    message: data.error
+                    message: 'Không tìm thấy ID sản phẩm'
                 });
                 return;
             }
 
+            // Validate required fields
+            if (!sp.ten_sp || !sp.hinh || !sp.gia || !sp.id_loai) {
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Vui lòng điền đầy đủ thông tin sản phẩm'
+                });
+                return;
+            }
+
+            // Validate numeric fields
+            if (isNaN(parseFloat(sp.gia)) || (sp.gia_km && isNaN(parseFloat(sp.gia_km)))) {
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Giá sản phẩm phải là số'
+                });
+                return;
+            }
+
+            const url = `http://localhost:3000/admin/sp/${sp.id}`;
+            const productData = {
+                ten_sp: sp.ten_sp.trim(),
+                hinh: sp.hinh.trim(),
+                gia: parseFloat(sp.gia),
+                gia_km: sp.gia_km ? parseFloat(sp.gia_km) : parseFloat(sp.gia),
+                ngay: sp.ngay ? moment(sp.ngay).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+                luot_xem: parseInt(sp.luot_xem) || 0,
+                id_loai: parseInt(sp.id_loai),
+                ram: sp.ram?.trim() || '',
+                cpu: sp.cpu?.trim() || '',
+                dia_cung: sp.dia_cung?.trim() || '',
+                mau_sac: sp.mau_sac?.trim() || '',
+                can_nang: sp.can_nang?.trim() || '',
+                an_hien: 1
+            };
+            
+            console.log('Updating product:', sp.id, productData);
+            
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.thongbao || 'Có lỗi xảy ra khi cập nhật sản phẩm');
+            }
+
+            const data = await response.json();
+            console.log('Server response:', data);
+            
             showNotification({
                 type: 'success',
                 title: 'Thành công',
-                message: data.thongbao
+                message: data.thongbao || 'Đã cập nhật sản phẩm thành công'
             });
+
             setRefresh(prev => !prev);
             
             // Đóng modal
@@ -75,7 +115,7 @@ function AdminProductSua({ setRefresh, selectedProduct }) {
             showNotification({
                 type: 'error',
                 title: 'Lỗi',
-                message: 'Có lỗi xảy ra khi cập nhật sản phẩm'
+                message: error.message || 'Có lỗi xảy ra khi cập nhật sản phẩm'
             });
         }
     };

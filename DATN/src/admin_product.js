@@ -250,7 +250,7 @@ function AdminProduct() {
                     <div className="admin_product_article_box_content_bang">
                         <div className="admin_product_article_box_content_bang_box_btn">
                             <div className="btn_add" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">
-                                <btn>Thêm sản phẩm</btn>
+                                <button>Thêm sản phẩm</button>
                             </div>
                         </div>
                         <hr />

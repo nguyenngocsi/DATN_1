@@ -15,7 +15,10 @@ function AdminProductThem({ setRefresh, adminListSP }) {
         cpu: '',
         dia_cung: '',
         mau_sac: '',
-        can_nang: ''
+        can_nang: '',
+        mota: '',
+        thongtin: '',
+        an_hien: true
     });
 
     const navigate = useNavigate();
@@ -54,17 +57,9 @@ function AdminProductThem({ setRefresh, adminListSP }) {
     };
 
     const closeModal = () => {
-        const modal = document.getElementById('exampleModal');
-        const modalBackdrop = document.querySelector('.modal-backdrop');
-        
-        if (modal) {
-            modal.classList.remove('show');
-            modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-        }
-        
-        if (modalBackdrop) {
-            modalBackdrop.remove();
+        const closeButton = document.querySelector('#exampleModal [data-bs-dismiss="modal"]');
+        if (closeButton) {
+            closeButton.click();
         }
     };
 
@@ -81,67 +76,56 @@ function AdminProductThem({ setRefresh, adminListSP }) {
             cpu: '',
             dia_cung: '',
             mau_sac: '',
-            can_nang: ''
+            can_nang: '',
+            mota: '',
+            thongtin: '',
+            an_hien: true
         });
     };
 
     const submitDuLieu = async (e) => {
         e.preventDefault();
-        
-        // Validate required fields
-        if (!sp.ten_sp.trim()) {
-            showNotification({
-                type: 'error',
-                title: 'Lỗi',
-                message: 'Vui lòng nhập tên sản phẩm'
-            });
-            return;
-        }
-
-        if (sp.id_loai === 0) {
-            showNotification({
-                type: 'error',
-                title: 'Lỗi',
-                message: 'Vui lòng chọn loại sản phẩm'
-            });
-            return;
-        }
-
-        if (!sp.gia || parseFloat(sp.gia) <= 0) {
-            showNotification({
-                type: 'error',
-                title: 'Lỗi',
-                message: 'Vui lòng nhập giá hợp lệ'
-            });
-            return;
-        }
-
-        const nextId = getNextId();
-        console.log('Generated next ID:', nextId);
-
-        if (nextId <= 0) {
-            showNotification({
-                type: 'error',
-                title: 'Lỗi',
-                message: 'Không thể tạo ID hợp lệ cho sản phẩm'
-            });
-            return;
-        }
-
-        // Format data before sending
-        const productData = {
-            ...sp,
-            id: nextId,
-            gia: parseFloat(sp.gia),
-            gia_km: parseFloat(sp.gia_km) || parseFloat(sp.gia),
-            luot_xem: parseInt(sp.luot_xem) || 0,
-            ngay: sp.ngay || new Date().toISOString().split('T')[0]
-        };
-
-        console.log('Sending product data:', productData);
-
         try {
-            const response = await fetch('http://localhost:3000/admin/sp', {
+            // Validate required fields
+            if (!sp.ten_sp || !sp.hinh || !sp.gia || !sp.id_loai) {
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Vui lòng điền đầy đủ thông tin sản phẩm'
+                });
+                return;
+            }
+
+            // Validate numeric fields
+            if (isNaN(parseFloat(sp.gia)) || (sp.gia_km && isNaN(parseFloat(sp.gia_km)))) {
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Giá sản phẩm phải là số'
+                });
+                return;
+            }
+
+            // Format data before sending
+            const productData = {
+                ten_sp: sp.ten_sp.trim(),
+                hinh: sp.hinh.trim(),
+                gia: parseFloat(sp.gia),
+                gia_km: sp.gia_km ? parseFloat(sp.gia_km) : parseFloat(sp.gia),
+                ngay: sp.ngay || new Date().toISOString().split('T')[0],
+                luot_xem: 0,
+                id_loai: parseInt(sp.id_loai),
+                ram: sp.ram?.trim() || '',
+                cpu: sp.cpu?.trim() || '',
+                dia_cung: sp.dia_cung?.trim() || '',
+                mau_sac: sp.mau_sac?.trim() || '',
+                can_nang: sp.can_nang?.trim() || '',
+                an_hien: 1
+            };
+
+            console.log('Sending product data:', productData);
+
+            const response = await fetch("http://localhost:3000/admin/sp", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -149,13 +133,13 @@ function AdminProductThem({ setRefresh, adminListSP }) {
                 body: JSON.stringify(productData)
             });
 
-            console.log('Response status:', response.status);
-            const responseData = await response.json();
-            console.log('Response data:', responseData);
-
-            if (!response.ok || responseData.error) {
-                throw new Error(responseData.thongbao || 'Có lỗi xảy ra khi thêm sản phẩm');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.thongbao || 'Có lỗi xảy ra khi thêm sản phẩm');
             }
+
+            const responseData = await response.json();
+            console.log('Server response:', responseData);
 
             showNotification({
                 type: 'success',
@@ -163,10 +147,23 @@ function AdminProductThem({ setRefresh, adminListSP }) {
                 message: 'Thêm sản phẩm thành công'
             });
 
+            // Reset form
             resetForm();
+
+            // Tìm và click nút đóng modal
+            const closeButton = document.querySelector('#exampleModal [data-bs-dismiss="modal"]');
+            if (closeButton) {
+                closeButton.click();
+            }
+
+            // Refresh dữ liệu
             setRefresh(prev => !prev);
-            closeModal();
             
+            // Chuyển hướng sau khi modal đã đóng
+            setTimeout(() => {
+                navigate('/admin/product', { replace: true });
+            }, 300);
+
         } catch (error) {
             console.error('Error details:', error);
             showNotification({
