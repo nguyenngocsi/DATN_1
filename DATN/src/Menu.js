@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { thoat } from './authSlice';
 import './header_menu.css';
@@ -9,9 +9,19 @@ function Menu() {
   const user = useSelector(state => state.auth.user);
   const daDangNhap = useSelector(state => state.auth.daDangNhap);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Thêm useEffect để debug
+  useEffect(() => {
+    console.log('Debug info:');
+    console.log('daDangNhap:', daDangNhap);
+    console.log('userId:', localStorage.getItem("userId"));
+    console.log('token:', localStorage.getItem("token"));
+    console.log('user:', user);
+  }, [daDangNhap, user]);
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
@@ -25,6 +35,8 @@ function Menu() {
 
   const Logout = () => {
     if (window.confirm('Bạn muốn đăng xuất?')) {
+      localStorage.removeItem("userId"); // Xóa userId khỏi localStorage
+      localStorage.removeItem("token");  // Xóa token khỏi localStorage nếu có
       dispatch(thoat());
     }
   };
@@ -83,46 +95,49 @@ function Menu() {
 
       {/* Menu người dùng */}
       <div className="user-menu">
-        <button type="button" className="btn">
-          <ul>
-            <li className="user_box" style={{ listStyle: 'none' }}>
-              {user === null || user === undefined ? (
-                <div className="user-actions">
-                  <NavLink to="/auth">
-                    <i className="bi bi-person-circle"></i> Đăng nhập / Đăng ký
+        <div className="user-profile-dropdown">
+          {user === null || user === undefined ? (
+            <NavLink to="/auth" className="user-actions">
+              <i className="bi bi-person-circle"></i> Đăng nhập / Đăng ký
+            </NavLink>
+          ) : (
+            <>
+              <div className="user-info">
+                <i className="bi bi-person-circle"></i>
+                <span>{user.name}</span>
+              </div>
+              <ul className="dropdown-menu">
+                <li>
+                  <NavLink 
+                    to={`/profile/${localStorage.getItem("userId")}`}
+                    className="menu-link"
+                    onClick={(e) => {
+                      if (!localStorage.getItem("token")) {
+                        e.preventDefault();
+                        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                        navigate("/auth");
+                      }
+                    }}
+                  >
+                    <i className="bi bi-person"></i>
+                    Thông tin cá nhân
                   </NavLink>
-                </div>
-              ) : (
-                <div style={{ fontSize: '25px', color: 'white' }}>{user.name}</div>
-              )}
-              <ul className="box_an_us_adm">
-                <div className="triangle-box_user"></div>
-                {!daDangNhap ? (
-                  <>
-                    <li><NavLink to="/#" className="menu-link">Thông tin cá nhân</NavLink></li>
-                    <li><NavLink to="/auth" className="menu-link">Đăng nhập</NavLink></li>
-                  </>
-                ) : (
-                  <>
-                    <li><NavLink to="/doimatkhau" className="menu-link">Đổi mật khẩu</NavLink></li>
-                    <li>
-                      <NavLink 
-                        to={`/profile/${user?.id || ''}`} 
-                        className="menu-link"
-                      >
-                        Thông tin cá nhân
-                      </NavLink>
-                    </li>
-                    <li className="divider"></li>
-                    <li>
-                      <button className="logout" onClick={Logout}>Đăng xuất</button>
-                    </li>
-                  </>
-                )}
+                </li>
+                <li><NavLink to="/doimatkhau" className="menu-link">
+                  <i className="bi bi-key"></i>
+                  Đổi mật khẩu
+                </NavLink></li>
+                <li className="divider"></li>
+                <li>
+                  <button className="logout" onClick={Logout}>
+                    <i className="bi bi-box-arrow-right"></i>
+                    Đăng xuất
+                  </button>
+                </li>
               </ul>
-            </li>
-          </ul>
-        </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Giỏ hàng */}

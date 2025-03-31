@@ -11,6 +11,14 @@ import qua from './img/qua.webp';
 import camket from './img/camket.webp';
 import nganhang from './img/footer_trustbadge.webp';
 
+// Đổi tên tất cả các biến khi import để tránh xung đột
+// import { 
+//     cart as cartData, 
+//     phieugiam as phieugiamData, 
+//     qua as quaData, 
+//     camket as camketData 
+// } from './data';
+
 function ProductDetail() {
     document.title = "Chi tiết sản phẩm";
     const dispatch = useDispatch();
@@ -19,11 +27,12 @@ function ProductDetail() {
     const [sanPhamNgauNhien, setSanPhamNgauNhien] = useState([]);
     const [quantity, setQuantity] = useState(1);
     const [thongBao, setThongBao] = useState(false);
-    const [comments, setComments] = useState([]); // State để lưu danh sách bình luận
-    const [newComment, setNewComment] = useState(''); // State để lưu nội dung bình luận mới
-    const [rating, setRating] = useState(0); // State để lưu đánh giá (rating)
-    const [commentError, setCommentError] = useState(''); // State để hiển thị lỗi khi thêm bình luận
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [rating, setRating] = useState(5);
+    const [commentError, setCommentError] = useState('');
     const [averageRating, setAverageRating] = useState(0);
+    // eslint-disable-next-line no-unused-vars
     const [commentPage, setCommentPage] = useState(1);
     const [totalComments, setTotalComments] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +45,7 @@ function ProductDetail() {
     // Lấy thông tin user và token từ Redux (giả sử bạn đã lưu userInfo và token trong Redux sau khi đăng nhập)
     const user = useSelector((state) => state.auth.userInfo); // Thay 'auth' bằng tên slice của bạn
     const token = useSelector((state) => state.auth.token); // Thay 'auth' bằng tên slice của bạn
+    const daDangNhap = useSelector(state => state.auth.daDangNhap);
 
     // Lấy chi tiết sản phẩm
     useEffect(() => {
@@ -64,22 +74,27 @@ function ProductDetail() {
     // Lấy danh sách bình luận của sản phẩm
     useEffect(() => {
         const fetchComments = async () => {
-            setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/comments/${id}?page=${commentPage}&limit=5`);
+                console.log('Fetching comments for product:', id);
+                const response = await fetch(`http://localhost:3000/comments/${id}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Lỗi khi tải bình luận');
+                }
+
                 const data = await response.json();
-                setComments(data.comments);
-                setTotalComments(data.total);
-                setAverageRating(data.average_rating);
-            } catch (err) {
-                console.error("Lỗi lấy danh sách bình luận:", err);
-            } finally {
-                setIsLoading(false);
+                console.log('Received comments:', data);
+                setComments(data);
+            } catch (error) {
+                console.error('Error fetching comments:', error);
             }
         };
 
-        fetchComments();
-    }, [id, commentPage]);
+        if (id) {
+            fetchComments();
+        }
+    }, [id]);
 
     // Thêm useEffect cho countdown
     useEffect(() => {
@@ -102,6 +117,15 @@ function ProductDetail() {
         return () => clearInterval(timer);
     }, []);
 
+    // Thêm useEffect để tính toán
+    useEffect(() => {
+        if (comments.length > 0) {
+            const total = comments.reduce((sum, comment) => sum + comment.rating, 0);
+            setAverageRating(total / comments.length);
+            setTotalComments(comments.length);
+        }
+    }, [comments]);
+
     const increaseQuantity = () => setQuantity(prev => prev + 1);
     const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
@@ -111,65 +135,53 @@ function ProductDetail() {
         setTimeout(() => setThongBao(false), 2000);
     };
 
-    // Xử lý thêm bình luận mới
-    const handleAddComment = async (e) => {
+    // Thêm hàm xử lý submit comment
+    const handleCommentSubmit = async (e) => {
         e.preventDefault();
-
-        if (!user) {
-            setCommentError("Vui lòng đăng nhập để thêm bình luận!");
+        
+        if (!daDangNhap) {
+            setCommentError('Vui lòng đăng nhập để bình luận');
             return;
         }
 
-        if (!newComment.trim()) {
-            setCommentError("Vui lòng nhập nội dung bình luận!");
-            return;
-        }
-
-        if (rating < 0 || rating > 5) {
-            setCommentError("Đánh giá phải từ 0 đến 5!");
-            return;
-        }
-
-        const commentData = {
-            user_id: user.id,
-            user_name: user.name || "Khách",
-            rating: rating,
-            comment_text: newComment,
-            product_id: parseInt(id),
-        };
-
+        setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:3000/comments", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(commentData),
+            console.log('Sending comment data:', {
+                product_id: id,
+                content: newComment,
+                rating: rating
             });
 
-            const result = await response.json();
-            if (response.ok) {
-                setComments(prevComments => [
-                    {
-                        ...commentData,
-                        id: Date.now(),
-                        created_at: new Date().toISOString(),
-                        user_avatar: user.hinh
-                    },
-                    ...prevComments
-                ]);
-                setNewComment('');
-                setRating(0);
-                setCommentError('');
-                // Cập nhật lại tổng số bình luận và rating trung bình
-                setTotalComments(prev => prev + 1);
-                setAverageRating(prev => ((prev * (totalComments) + rating) / (totalComments + 1)));
-            } else {
-                setCommentError(result.thongbao || "Thêm bình luận thất bại!");
+            const response = await fetch('http://localhost:3000/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    product_id: parseInt(id),
+                    content: newComment,
+                    rating: parseInt(rating)
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Lỗi khi thêm bình luận');
             }
-        } catch (err) {
-            setCommentError("Lỗi khi thêm bình luận: " + err.message);
+
+            setComments(prevComments => [data, ...prevComments]);
+            setNewComment('');
+            setRating(5);
+            setCommentError('');
+            alert('Đã thêm bình luận thành công!');
+
+        } catch (error) {
+            console.error('Comment error:', error);
+            setCommentError('Không thể thêm bình luận: ' + error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -363,7 +375,7 @@ function ProductDetail() {
                 <div style={{ marginBottom: '30px' }}>
                     <h4>Thêm bình luận của bạn</h4>
                     {commentError && <div style={{ color: 'red', marginBottom: '10px' }}>{commentError}</div>}
-                    <form onSubmit={handleAddComment}>
+                    <form onSubmit={handleCommentSubmit}>
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ fontWeight: '600', marginRight: '10px' }}>Đánh giá:</label>
                             <div style={{ display: 'inline-block' }}>
@@ -446,10 +458,10 @@ function ProductDetail() {
                                         />
                                         <div>
                                             <strong>{comment.user_name}</strong>
-                                            <div>{renderStars(comment.Rating)}</div>
+                                            <div>{renderStars(comment.rating)}</div>
                                         </div>
                                     </div>
-                                    <p style={{ margin: '10px 0' }}>{comment.Comment_Text}</p>
+                                    <p style={{ margin: '10px 0' }}>{comment.content}</p>
                                     <small style={{ color: '#888' }}>
                                         {new Date(comment.created_at).toLocaleString('vi-VN')}
                                     </small>

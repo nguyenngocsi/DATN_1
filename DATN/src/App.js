@@ -23,7 +23,7 @@ import ForgotPassword from './ForgotPassword';
 import HienSPTrongMotTrang from './HienSPTrongMotTrang';
 import SoSanh from './SoSanh';
 import ProtectedRoute from './ProtectedRoute';
-import UppdatePassWord from './doi_pass';
+import UpdatePassword from './doi_pass';
 import AdminCategory from './admin_category';
 import laptop from './laptop';
 import KhuyenMai from './KhuyenMai';
@@ -164,7 +164,8 @@ function App() {
           React.createElement(Route, { path: '/admin/user', element: React.createElement(AdminUser, null) }),
           React.createElement(Route, { path: '/admin/order', element: React.createElement(AdminOrder, null) }),
           React.createElement(Route, { path: '/admin/category', element: React.createElement(AdminCategory, null) }),
-          React.createElement(Route, { path: '/doimatkhau', element: React.createElement(UppdatePassWord, null) })
+          React.createElement(Route, { path: '/doimatkhau', element: React.createElement(UpdatePassword, null) }),
+          React.createElement(Route, { path: '/profile/:userId', element: React.createElement(Profile, null) })
         )
       )
     ),
