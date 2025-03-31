@@ -64,7 +64,7 @@ function Menu() {
         React.createElement(
           'li',
           null,
-          React.createElement(NavLink, { to: '/san-pham', activeClassName: 'active' }, 'Sản phẩm'),
+          React.createElement(NavLink, { to: '', activeClassName: 'active' }, 'Sản phẩm'),
           React.createElement(
             'ul',
             { className: 'dropdown' },

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import './main.css';
 import './home_sosanh.css';
-
+import './sosanh.css';
 function SoSanh() {
     const dispatch = useDispatch();
     const danhSachSoSanh = useSelector((state) => state.compare?.danhSachSoSanh || []);
