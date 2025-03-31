@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { showNotification } from './components/NotificationContainer';
 
 function AdminCategoryEdit({ loai, setRefresh }) {
     const [editedLoai, setEditedLoai] = useState({
@@ -43,7 +44,11 @@ function AdminCategoryEdit({ loai, setRefresh }) {
     const submitDuLieu = () => {
         // Kiểm tra dữ liệu đầu vào
         if (!editedLoai.ten_loai || !editedLoai.img_loai) {
-            alert("Vui lòng nhập đầy đủ thông tin tên danh mục và hình ảnh!");
+            showNotification({
+                type: 'error',
+                title: 'Lỗi',
+                message: 'Vui lòng nhập đầy đủ thông tin tên danh mục và hình ảnh!'
+            });
             return;
         }
         
@@ -57,7 +62,11 @@ function AdminCategoryEdit({ loai, setRefresh }) {
         fetch(url, options)
             .then(res => res.json())
             .then(data => {
-                alert(data.thongbao || "Cập nhật danh mục thành công!");
+                showNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: data.thongbao || "Cập nhật danh mục thành công!"
+                });
                 
                 // Hiển thị thông báo
                 setThongBao(true);
@@ -73,8 +82,12 @@ function AdminCategoryEdit({ loai, setRefresh }) {
                 setRefresh(prev => !prev);
             })
             .catch(error => {
-                console.error("Lỗi khi cập nhật danh mục:", error);
-                alert("Có lỗi xảy ra khi cập nhật danh mục!");
+                console.error('Error:', error);
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Có lỗi xảy ra khi cập nhật danh mục!'
+                });
             });
     };
 

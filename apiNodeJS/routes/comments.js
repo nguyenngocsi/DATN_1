@@ -1,11 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db'); // Đường dẫn tới db.js (điều chỉnh nếu cần)
-const validator = require('validator');
+const pool = require('../db'); // Import pool từ db.js
 
-// Nhận authenticateToken từ index.js
 module.exports = (authenticateToken) => {
-    // GET /comments/:product_id
     router.get('/:product_id', async (req, res) => {
         try {
             const product_id = parseInt(req.params.product_id);
@@ -23,7 +20,7 @@ module.exports = (authenticateToken) => {
             const offset = (page - 1) * limit;
 
             const [rows] = await pool.query(
-                `SELECT c.id, c.user_id, c.user_name, c.rating, c.comment_text, c.product_id, c.created_at,
+                `SELECT c.id, c.user_id, c.user_name, c.Rating, c.Comment_Text, c.product_id, c.created_at,
                         u.hinh as user_avatar
                  FROM comment c
                  LEFT JOIN users u ON c.user_id = u.id
@@ -34,7 +31,7 @@ module.exports = (authenticateToken) => {
             );
 
             const [total] = await pool.query(`SELECT COUNT(*) as total FROM comment WHERE product_id = ?`, [product_id]);
-            const [avgRating] = await pool.query(`SELECT AVG(rating) as average_rating FROM comment WHERE product_id = ?`, [product_id]);
+            const [avgRating] = await pool.query(`SELECT AVG(Rating) as average_rating FROM comment WHERE product_id = ?`, [product_id]);
 
             res.json({
                 comments: rows,
@@ -49,12 +46,11 @@ module.exports = (authenticateToken) => {
         }
     });
 
-    // POST /comments
     router.post('/', authenticateToken, async (req, res) => {
         try {
-            const { user_id, user_name, rating, comment_text, product_id } = req.body;
+            const { user_id, user_name, Rating, Comment_Text, product_id } = req.body;
 
-            if (!user_id || !product_id || !comment_text) {
+            if (!user_id || !product_id || !Comment_Text) {
                 return res.status(400).json({ thongbao: "Thiếu thông tin bắt buộc" });
             }
 
@@ -67,12 +63,12 @@ module.exports = (authenticateToken) => {
                 return res.status(404).json({ thongbao: "Người dùng không tồn tại" });
             }
 
-            const ratingValue = parseInt(rating) || 0;
+            const ratingValue = parseInt(Rating) || 0;
             if (ratingValue < 0 || ratingValue > 5) {
                 return res.status(400).json({ thongbao: "Rating phải từ 0 đến 5" });
             }
 
-            if (!validator.isLength(comment_text, { min: 1, max: 500 })) {
+            if (!Comment_Text || Comment_Text.length < 1 || Comment_Text.length > 500) {
                 return res.status(400).json({ thongbao: "Nội dung bình luận phải từ 1 đến 500 ký tự" });
             }
 
@@ -90,17 +86,17 @@ module.exports = (authenticateToken) => {
             }
 
             const [result] = await pool.query(
-                `INSERT INTO comment (user_id, user_name, rating, comment_text, product_id) 
+                `INSERT INTO comment (user_id, user_name, Rating, Comment_Text, product_id) 
                  VALUES (?, ?, ?, ?, ?)`,
-                [user_id, user_name || 'Khách', ratingValue, comment_text, product_id]
+                [user_id, user_name || 'Khách', ratingValue, Comment_Text, product_id]
             );
 
             const newComment = {
                 id: result.insertId,
                 user_id,
                 user_name: user_name || 'Khách',
-                rating: ratingValue,
-                comment_text: comment_text,
+                Rating: ratingValue,
+                Comment_Text,
                 product_id,
                 created_at: new Date().toISOString(),
             };

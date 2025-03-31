@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { showNotification } from './components/NotificationContainer';
 
 function AdminUsersThem({ setRefresh }) {
     const [us, setUs] = useState({
@@ -32,7 +33,11 @@ function AdminUsersThem({ setRefresh }) {
         fetch(url, otp)
             .then(res => res.json())
             .then(data => {
-                alert(data.thongbao);
+                showNotification({
+                    type: data.error ? 'error' : 'success',
+                    title: data.error ? 'Lỗi' : 'Thành công',
+                    message: data.thongbao
+                });
                 setUs({
                     name: '',
                     email: '',
@@ -42,8 +47,16 @@ function AdminUsersThem({ setRefresh }) {
                     hinh: '',
                     role: 0
                 });
-                setRefresh(prev => !prev); 
-                navigate('/admin/user'); 
+                setRefresh(prev => !prev);
+                navigate('/admin/user');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Có lỗi xảy ra khi thêm tài khoản'
+                });
             });
     };
 

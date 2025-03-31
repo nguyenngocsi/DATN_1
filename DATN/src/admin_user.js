@@ -1,41 +1,56 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AdminUsersThem from "./admin_users_Them ";
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { thoat } from './authSlice';
+import { showNotification } from './components/NotificationContainer';
 
 function AdminUser() {     
     document.title="Quản lý tài khoản";
     const [adminListUS, ganadminListUS] = useState( [] );
     const [refresh, setRefresh] = useState(false);
     const user = useSelector(state => state.auth.user);
-    // const usevigate = useNavigate();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     useEffect ( () => {
        fetch("http://localhost:3000/admin/users")
        .then(res=>res.json()).then(data => ganadminListUS(data));     
     },[refresh]);
-    const xoaUS = (id)  => {
-        if  ( window.confirm('Bạn muốn xóa tài khoản này?')===false)  
-                 return false;
-                 fetch(`http://localhost:3000/admin/users/${id}`, {method:'delete'})
-                 .then(res => res.json())
-                 .then(data => {
-                     if(data){
-                        alert(data.thongbao);
-                     }else{
-                        alert(data.thongbao);
-                        ganadminListUS(adminListUS.filter(user => user.id !== id))
-                     }
-                 }); 
-
+    const xoaUS = (id) => {
+        if (window.confirm('Bạn muốn xóa tài khoản này?') === false) return false;
+        
+        fetch(`http://localhost:3000/admin/users/${id}`, {method:'delete'})
+            .then(res => res.json())
+            .then(data => {
+                showNotification({
+                    type: data.error ? 'error' : 'success',
+                    title: data.error ? 'Lỗi' : 'Thành công',
+                    message: data.thongbao
+                });
+                if (!data.error) {
+                    ganadminListUS(adminListUS.filter(user => user.id !== id));
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi khi xóa tài khoản:", error);
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Có lỗi xảy ra khi xóa tài khoản'
+                });
+            });
     };
-    const dispatch = useDispatch();
     const Logout = () => {
-      if(window.confirm('Bạn muốn đăng xuất?')) {
-        dispatch(thoat());
-        window.location.href = '/';
-      }
+        if(window.confirm('Bạn muốn đăng xuất?')) {
+            dispatch(thoat());
+            showNotification({
+                type: 'info',
+                title: 'Đăng xuất',
+                message: 'Bạn đã đăng xuất thành công'
+            });
+            navigate('/');
+        }
     };
     return(
         <div className="admin_product">
@@ -49,7 +64,7 @@ function AdminUser() {
                         <div className="admin_product_aside_header_menu">
                                 <ul>
                                        <li><Link to="/admin"><i className="fa-solid fa-layer-group"></i> Quản lý Dashboard</Link></li>
-                                       <li><Link to="/admin/category"><i class="fas fa-list-task"></i> Quản lý Danh mục</Link></li>
+                                       <li><Link to="/admin/category"><i className="fas fa-list-task"></i> Quản lý Danh mục</Link></li>
                                         <li><Link to="/admin/product"><i className="fa-solid fa-tags"></i> Quản lý sản phẩm</Link></li>
                                         <li><Link to="/admin/user"><i className="fa-solid fa-user"></i> Quản lý tài khoản</Link></li>
                                         <li><Link to="/admin/order"><i className="fa-solid fa-pen-to-square"></i> Quản lí đơn hàng</Link></li> 
@@ -63,11 +78,11 @@ function AdminUser() {
             </aside>
             <article className="admin_product_article">
                 <div className="admin_product_article_header">
-                    <div className="admin_product_article_header_icon_logout"><Link to="/admin"><i class="bi bi-house-door-fill"></i></Link></div>
+                    <div className="admin_product_article_header_icon_logout"><Link to="/admin"><i className="bi bi-house-door-fill"></i></Link></div>
                 </div>
                 <div className="admin_product_article_box_content">
                       <div className="admin_product_article_box_content_title">
-                        <h2>Quản lý Danh mục</h2>
+                        <h2>Quản lý tài khoản</h2>
                       </div>
                       <div className="admin_product_article_box_content_bang">
                             <div className="admin_product_article_box_content_bang_box_btn">

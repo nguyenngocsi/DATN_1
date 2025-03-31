@@ -1,8 +1,10 @@
 // admin_category_Sua.js
 import { useState, useEffect } from "react";
 import './admin.css';
+import { showNotification } from './components/NotificationContainer';
 
-function AdminCategorySua({ setRefresh, category }) {
+function AdminCategorySua({ setRefresh, category, setSelectedCategory }) {
+    const [thongBao, setThongBao] = useState(false);
     const [loai, setLoai] = useState({
         ten_loai: '',
         img_loai: '',
@@ -12,7 +14,9 @@ function AdminCategorySua({ setRefresh, category }) {
     });
 
     useEffect(() => {
-        if (category) setLoai(category);
+        if (category) {
+            setLoai(category);
+        }
     }, [category]);
 
     const xuliInput = (e) => {
@@ -24,23 +28,48 @@ function AdminCategorySua({ setRefresh, category }) {
         setLoai(prev => ({ ...prev, an_hien: parseInt(e.target.value) }));
     };
 
-    const submitDuLieu = () => {
-        fetch(`http://localhost:3000/admin/category/${loai.id}`, {
-            method: "PUT",
-            body: JSON.stringify(loai),
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.thongbao);
-                setRefresh(prev => !prev);
+    const submitDuLieu = async () => {
+        try {
+            const url = `http://localhost:3000/admin/category/${loai.id}`;
+            const response = await fetch(url, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(loai)
             });
-            setThongBao(true);
-            setTimeout(() => {
-            setThongBao(false);
-        }, 2000);
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                showNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: data.error
+                });
+                return;
+            }
+
+            showNotification({
+                type: 'success',
+                title: 'Thành công',
+                message: data.thongbao
+            });
+            setRefresh(prev => !prev);
+            
+            // Đóng modal
+            const closeButton = document.querySelector('#exampleModal2 .btn-close');
+            if (closeButton) {
+                closeButton.click();
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi cập nhật danh mục:", error);
+            showNotification({
+                type: 'error',
+                title: 'Lỗi',
+                message: 'Có lỗi xảy ra khi cập nhật danh mục'
+            });
+        }
     };
-    const [thongBao, setThongBao] = useState(false);
 
     return (
         <div>
@@ -51,11 +80,11 @@ function AdminCategorySua({ setRefresh, category }) {
                     </div>
                 )}
             </div>
-            <div className="modal fade" id="editModal" tabIndex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div className="modal fade" id="exampleModal2" tabIndex="-1" aria-labelledby="exampleModal2Label" aria-hidden="true">
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title" id="editModalLabel">Sửa Danh Mục</h5>
+                            <h5 className="modal-title" id="exampleModal2Label">Sửa Danh Mục</h5>
                             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div className="modal-body">
@@ -65,7 +94,7 @@ function AdminCategorySua({ setRefresh, category }) {
                                     type="text" 
                                     className="form-control" 
                                     id="ten_loai" 
-                                    value={loai.ten_loai} 
+                                    value={loai.ten_loai || ''} 
                                     onChange={xuliInput} 
                                     placeholder="Nhập tên danh mục"
                                 />
@@ -76,7 +105,7 @@ function AdminCategorySua({ setRefresh, category }) {
                                     type="text" 
                                     className="form-control" 
                                     id="img_loai" 
-                                    value={loai.img_loai} 
+                                    value={loai.img_loai || ''} 
                                     onChange={xuliInput} 
                                     placeholder="Nhập URL hình ảnh"
                                 />
@@ -87,7 +116,7 @@ function AdminCategorySua({ setRefresh, category }) {
                                     type="text" 
                                     className="form-control" 
                                     id="slug" 
-                                    value={loai.slug} 
+                                    value={loai.slug || ''} 
                                     onChange={xuliInput} 
                                     placeholder="Nhập slug"
                                 />
@@ -98,7 +127,7 @@ function AdminCategorySua({ setRefresh, category }) {
                                     type="number" 
                                     className="form-control" 
                                     id="thu_tu" 
-                                    value={loai.thu_tu} 
+                                    value={loai.thu_tu || ''} 
                                     onChange={xuliInput} 
                                     placeholder="Nhập thứ tự"
                                 />

@@ -8,23 +8,16 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const app = express();
+const multer = require('multer');
+const path = require('path');
+const { pool } = require('./db'); // Require pool từ db.js
 
 app.use(express.json());
 app.use(cors());
 
 const PRIVATE_KEY = fs.readFileSync("private-key.txt");
 
-const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    port: 3306,
-    database: "laptop_react",
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-});
-console.log("Đã kết nối database");
+
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];

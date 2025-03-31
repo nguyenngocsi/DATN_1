@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './admin.css';
+import { showNotification } from './components/NotificationContainer';
 
 function AdminCategoryThem({ setRefresh }) {
     const [loai, setUs] = useState({
@@ -30,23 +31,35 @@ function AdminCategoryThem({ setRefresh }) {
         }));
     };
     
-    const submitDuLieu = () => {
-        // Kiểm tra dữ liệu đầu vào
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
         if (!loai.ten_loai || !loai.img_loai) {
-            alert("Vui lòng nhập đầy đủ thông tin tên danh mục và hình ảnh!");
+            showNotification({
+                type: 'error',
+                title: 'Lỗi',
+                message: 'Vui lòng nhập đầy đủ thông tin tên danh mục và hình ảnh!'
+            });
             return;
         }
-        
-        let url = `http://localhost:3000/admin/category`;
-        let otp = {
-            method: "post",
-            body: JSON.stringify(loai),
-            headers: { 'Content-Type': 'application/json' }
-        }
-        fetch(url, otp)
-            .then(res => res.json())
-            .then(data => {
-                alert(data.thongbao || "Thêm danh mục thành công!");
+
+        try {
+            const response = await fetch('http://localhost:3000/admin/category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loai)
+            });
+
+            const data = await response.json();
+            showNotification({
+                type: data.error ? 'error' : 'success',
+                title: data.error ? 'Lỗi' : 'Thành công',
+                message: data.thongbao || "Thêm danh mục thành công!"
+            });
+
+            if (!data.error) {
                 setUs({
                     ten_loai: '',
                     img_loai: '',
@@ -54,23 +67,21 @@ function AdminCategoryThem({ setRefresh }) {
                     thu_tu: '',
                     an_hien: 1 // Reset to default "Hiện"
                 });
-                
                 setRefresh(prev => !prev);
-                
-                // Hiển thị thông báo
-                setThongBao(true);
-                setTimeout(() => {
-                    setThongBao(false);
-                }, 2000);
-                
                 // Đóng modal
                 const closeButton = document.querySelector('#exampleModal .btn-close');
-                if (closeButton) closeButton.click();
-            })
-            .catch(error => {
-                console.error("Lỗi khi thêm danh mục:", error);
-                alert("Có lỗi xảy ra khi thêm danh mục!");
+                if (closeButton) {
+                    closeButton.click();
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification({
+                type: 'error',
+                title: 'Lỗi',
+                message: 'Có lỗi xảy ra khi thêm danh mục!'
             });
+        }
     };
 
     return (
@@ -164,7 +175,7 @@ function AdminCategoryThem({ setRefresh }) {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" className="btn btn-primary" onClick={submitDuLieu}>Xác nhận</button>
+                            <button type="button" className="btn btn-primary" onClick={handleSubmit}>Xác nhận</button>
                         </div>
                     </div>
                 </div>
